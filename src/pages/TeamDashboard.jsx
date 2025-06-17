@@ -7,7 +7,11 @@ const data = [
   { user: 'Bob', status: 'Idle', tasks: 2, duration: '1h' },
 ];
 
+
 function TeamDashboard({ isAdmin }) {
+
+function TeamDashboard() {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="flex h-screen overflow-hidden">
@@ -16,9 +20,11 @@ function TeamDashboard({ isAdmin }) {
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="p-4">
           <h2 className="text-xl font-bold mb-4">Team Dashboard</h2>
+
           {isAdmin && (
             <button className="btn-primary mb-2">Edit Members</button>
           )}
+
           <table className="min-w-full border">
             <thead className="bg-gray-100">
               <tr>

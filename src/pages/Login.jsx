@@ -1,5 +1,6 @@
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setCookie } from '../utils/cookies.js';
@@ -12,6 +13,20 @@ function Login({ setToken, setIsAdmin }) {
   const [isFaceLogin, setIsFaceLogin] = useState(false);
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '../partials/Header';
+
+function Login({ setToken }) {
+  const [Email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [aes_key, setAes_key] = useState('');
+  const [isFaceLogin, setIsFaceLogin] = useState(false);
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [imageSrc, setImageSrc] = useState('');
+
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
     UserID: '',
@@ -45,6 +60,7 @@ function Login({ setToken, setIsAdmin }) {
   const fetchSecurityCode = async () => {
     try {
       const response = await axios.get(`https:/text.olgtx.com/security-code?code=${formData.register_code}`);
+
       setAesKey(response.data.aes_key);
       return response.data.aes_key;
     } catch (err) {
@@ -57,6 +73,18 @@ function Login({ setToken, setIsAdmin }) {
     const iv = CryptoJS.enc.Utf8.parse(key.substring(32, 48));
     const aKey = CryptoJS.enc.Utf8.parse(key.substring(0, 32));
     const encrypted = CryptoJS.AES.encrypt(pw, aKey, {
+
+      setAes_key(response.data.aes_key);
+    } catch (err) {
+      alert('Error fetching security code');
+    }
+  };
+
+  const encryptPassword = (pw) => {
+    const iv = CryptoJS.enc.Utf8.parse(aes_key.substring(32, 16));
+    const aesKey = CryptoJS.enc.Utf8.parse(aes_key.substring(0, 32));
+    const encrypted = CryptoJS.AES.encrypt(pw, aesKey, {
+
       iv: iv,
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7,
@@ -94,15 +122,24 @@ function Login({ setToken, setIsAdmin }) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+
+    setImageSrc(imageBase64);
+
     setFormData({ ...formData, photo: imageBase64 });
     stopStreaming();
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
     const key = await fetchSecurityCode();
     getLocation();
     const encryptedPassword = encryptPassword(password, key);
+
+    fetchSecurityCode();
+    getLocation();
+    const encryptedPassword = encryptPassword(password);
+
     const timestamp = Date.now();
     try {
       await axios.post('https://text.olgtx.com/register', {
@@ -127,7 +164,11 @@ function Login({ setToken, setIsAdmin }) {
       alert('User registered successfully');
       setIsRegister(false);
       stopStreaming();
+
       navigate('/login');
+
+      navigate('/log');
+
     } catch (error) {
       console.error('Registration error:', error);
       alert('Error registering user');
@@ -138,18 +179,26 @@ function Login({ setToken, setIsAdmin }) {
     e.preventDefault();
     try {
       const response = await axios.post('https://text.olgtx.com/fetch-aes-key', { Email });
+
       const key = response.data.aes_key;
       setAesKey(key);
       const encryptedPassword = encryptPassword(password, key);
+
+      setAes_key(response.data.aes_key);
+      const encryptedPassword = encryptPassword(password);
+
       const res = await axios.post('https://text.olgtx.com/login', { Email, encryptedPassword });
       if (res.status === 200) {
         stopStreaming();
         setToken(res.data.token);
+
         setCookie('token', res.data.token);
         const adminFlag = res.data.user?.id === '130529200510115322';
         setIsAdmin(adminFlag);
         setCookie('isAdmin', adminFlag ? '1' : '0');
         navigate('/dashboard');
+
+
       } else {
         alert('Invalid username or password');
       }
@@ -172,11 +221,13 @@ function Login({ setToken, setIsAdmin }) {
       if (response.status === 200) {
         stopStreaming();
         setToken(response.data.token);
+
         setCookie('token', response.data.token);
         const adminFlag = response.data.user?.id === '130529200510115322';
         setIsAdmin(adminFlag);
         setCookie('isAdmin', adminFlag ? '1' : '0');
         navigate('/dashboard');
+
       } else {
         alert('Invalid face');
       }
