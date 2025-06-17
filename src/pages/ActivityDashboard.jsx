@@ -7,7 +7,11 @@ const sampleData = [
   { time: '09:10', task: 'Coding', duration: '50m' },
 ];
 
+
+function ActivityDashboard({ isAdmin }) {
+
 function ActivityDashboard() {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [offline, setOffline] = useState(false);
   return (
@@ -40,6 +44,9 @@ function ActivityDashboard() {
           <div className="space-x-2">
             <button className="btn-primary">Sync Now</button>
             <button className="btn-secondary">Retry Upload</button>
+
+            {isAdmin && <button className="btn-primary">Edit Logs</button>}
+
           </div>
         </main>
       </div>
