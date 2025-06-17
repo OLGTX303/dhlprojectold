@@ -1,31 +1,48 @@
-import React, { useEffect } from 'react';
-import {
-  Routes,
-  Route,
-  useLocation
-} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { getCookie, setCookie, deleteCookie } from './utils/cookies.js';
 
 import './css/style.css';
-
 import './charts/ChartjsConfig';
 
-// Import pages
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ActivityDashboard from './pages/ActivityDashboard';
+import TeamDashboard from './pages/TeamDashboard';
+import EditActivity from './pages/EditActivity';
 
 function App() {
-
   const location = useLocation();
+  const [token, setToken] = useState(() => getCookie('token') || null);
+  const [isAdmin, setIsAdmin] = useState(() => getCookie('isAdmin') === '1');
 
   useEffect(() => {
-    document.querySelector('html').style.scrollBehavior = 'auto'
-    window.scroll({ top: 0 })
-    document.querySelector('html').style.scrollBehavior = ''
-  }, [location.pathname]); // triggered on route change
+    document.querySelector('html').style.scrollBehavior = 'auto';
+    window.scroll({ top: 0 });
+    document.querySelector('html').style.scrollBehavior = '';
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (token) {
+      setCookie('token', token);
+    } else {
+      deleteCookie('token');
+    }
+  }, [token]);
+
+  useEffect(() => {
+    setCookie('isAdmin', isAdmin ? '1' : '0');
+  }, [isAdmin]);
 
   return (
     <>
       <Routes>
-        <Route exact path="/" element={<Dashboard />} />
+        <Route path="/" element={<Login setToken={setToken} setIsAdmin={setIsAdmin} />} />
+        <Route path="/login" element={<Login setToken={setToken} setIsAdmin={setIsAdmin} />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/activity" element={<ActivityDashboard isAdmin={isAdmin} />} />
+        <Route path="/team" element={<TeamDashboard isAdmin={isAdmin} />} />
+        <Route path="/edit" element={<EditActivity />} />
       </Routes>
     </>
   );
